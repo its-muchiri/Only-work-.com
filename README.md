@@ -23,6 +23,20 @@ python -m http.server 8080
 
 Then visit `http://127.0.0.1:8080/`.
 
+## Create the GitHub repository
+
+1. On GitHub: **New repository** → name it (for example `onlywork` or
+   `onlywork-com`) → **Public** → **Create repository** (leave “Add a README”
+   unchecked so you can push this history cleanly).
+2. In this folder on your machine:
+
+   ```bash
+   git remote add origin https://github.com/<your-username>/<repo>.git
+   git push -u origin main
+   ```
+
+3. Enable Pages (next section).
+
 ## Publish on GitHub Pages
 
 This repository includes a [GitHub Actions](.github/workflows/pages.yml)
