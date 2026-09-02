@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Messages | Onlywork</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="app-body">
+    <script src="auth.js"></script>
+    <script>
+      if (!window.OnlyworkAuth || !OnlyworkAuth.getSession()) {
+        location.replace("login.html?next=" + encodeURIComponent("messages.html"));
+      }
+    </script>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--1" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--2" aria-hidden="true"></div>
+
+    <header class="app-topbar">
+      <div class="app-topbar-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-text">Onlywork<span class="brand-tld">.com</span></span>
+        </a>
+        <nav class="app-nav" aria-label="Workspace">
+          <a href="tasks.html">Tasks</a>
+          <a href="payout.html">Payouts</a>
+          <a href="news.html">News</a>
+          <a class="is-active" href="messages.html">Messages</a>
+        </nav>
+        <div class="app-user-row">
+          <span id="app-user-name"></span>
+          <button type="button" class="btn btn-outline btn-small" id="logout-btn">Log out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <h1 class="page-title">Messages</h1>
+      <p class="page-lede">
+        Coordinators may reach out about quality, payouts, or eligibility. This inbox is a
+        static preview for the demo.
+      </p>
+      <p class="demo-banner">
+        Demo only—replies are not sent anywhere.
+      </p>
+
+      <div class="messages-layout">
+        <section class="panel" aria-labelledby="threads-heading">
+          <h2 id="threads-heading">Inbox</h2>
+          <ul class="thread-list" id="thread-list">
+            <li>
+              <button type="button" class="is-active" data-thread="ops">
+                <strong>Program ops</strong>
+                <div class="thread-preview">Quick heads-up about this week’s batch</div>
+              </button>
+            </li>
+            <li>
+              <button type="button" data-thread="payouts">
+                <strong>Payouts</strong>
+                <div class="thread-preview">Please confirm your tax profile</div>
+              </button>
+            </li>
+            <li>
+              <button type="button" data-thread="quality">
+                <strong>Quality review</strong>
+                <div class="thread-preview">Thanks for the clean kitchen clip</div>
+              </button>
+            </li>
+          </ul>
+        </section>
+
+        <section class="panel" id="thread-panel" aria-live="polite">
+          <h2 id="thread-title">Program ops</h2>
+          <div class="chat-panel" id="thread-body">
+            <div class="chat-bubble chat-bubble--them">
+              Hi — we are seeing strong completion times in your city cohort. Keep using the
+              wide-angle preset when it appears on the checklist.
+            </div>
+            <div class="chat-bubble chat-bubble--me">
+              Sounds good. I will stick to the preset and double-check lighting before upload.
+            </div>
+            <div class="chat-bubble chat-bubble--them">
+              Perfect. Payouts for last week are queued for Friday as usual.
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      var threads = {
+        ops: {
+          title: "Program ops",
+          html:
+            '<div class="chat-bubble chat-bubble--them">Hi — we are seeing strong completion times in your city cohort. Keep using the wide-angle preset when it appears on the checklist.</div>' +
+            '<div class="chat-bubble chat-bubble--me">Sounds good. I will stick to the preset and double-check lighting before upload.</div>' +
+            '<div class="chat-bubble chat-bubble--them">Perfect. Payouts for last week are queued for Friday as usual.</div>',
+        },
+        payouts: {
+          title: "Payouts",
+          html:
+            '<div class="chat-bubble chat-bubble--them">Please confirm your tax profile so we can release this week’s deposit without delays.</div>' +
+            '<div class="chat-bubble chat-bubble--me">Submitted — let me know if anything else is missing.</div>' +
+            '<div class="chat-bubble chat-bubble--them">Received. You are all set for the Friday run.</div>',
+        },
+        quality: {
+          title: "Quality review",
+          html:
+            '<div class="chat-bubble chat-bubble--them">Thanks for the clean kitchen clip — framing and audio were both reviewer-friendly.</div>' +
+            '<div class="chat-bubble chat-bubble--me">Great to hear. Happy to pick up more kitchen blocks.</div>',
+        },
+      };
+
+      document.addEventListener("DOMContentLoaded", function () {
+        OnlyworkAuth.initAppHeader();
+        var list = document.getElementById("thread-list");
+        var titleEl = document.getElementById("thread-title");
+        var bodyEl = document.getElementById("thread-body");
+        list.addEventListener("click", function (e) {
+          var btn = e.target.closest("button[data-thread]");
+          if (!btn) return;
+          var id = btn.getAttribute("data-thread");
+          var data = threads[id];
+          if (!data) return;
+          list.querySelectorAll("button").forEach(function (b) {
+            b.classList.toggle("is-active", b === btn);
+          });
+          titleEl.textContent = data.title;
+          bodyEl.innerHTML = data.html;
+        });
+      });
+    </script>
+  </body>
+</html>

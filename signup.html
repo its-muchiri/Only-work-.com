@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign up | Onlywork</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <style>.btn-full { width: 100%; }</style>
+  </head>
+  <body class="auth-body">
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--1" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--2" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-text">Onlywork<span class="brand-tld">.com</span></span>
+        </a>
+        <div class="header-actions">
+          <a class="btn btn-ghost" href="index.html">Home</a>
+          <a class="btn btn-outline" href="login.html">Log in</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="auth-main">
+      <div class="auth-card">
+        <h1>Create your account</h1>
+        <p class="auth-lede">Join the workspace to pick up tasks, track payouts, and get updates.</p>
+        <form id="signup-form" novalidate>
+          <p id="signup-error" class="form-error" role="alert"></p>
+          <div class="form-field">
+            <label for="name">Full name</label>
+            <input id="name" name="name" type="text" autocomplete="name" required />
+          </div>
+          <div class="form-field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required />
+          </div>
+          <div class="form-field">
+            <label for="password">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="new-password"
+              minlength="6"
+              required
+            />
+          </div>
+          <button class="btn btn-primary btn-lg btn-full" type="submit">
+            Sign up
+          </button>
+        </form>
+        <p class="auth-footer">
+          Already have an account? <a href="login.html">Log in</a>
+        </p>
+      </div>
+    </main>
+
+    <script src="auth.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", async function () {
+        if (window.OnlyworkAuth) await OnlyworkAuth.redirectIfAuthed();
+
+        var form = document.getElementById("signup-form");
+        var err = document.getElementById("signup-error");
+
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          err.textContent = "";
+          var btn = form.querySelector("[type=submit]");
+          btn.disabled = true;
+          btn.textContent = "Creating account…";
+
+          var fd = new FormData(form);
+          var res = await OnlyworkAuth.signup({
+            name: fd.get("name"),
+            email: fd.get("email"),
+            password: fd.get("password"),
+          });
+
+          btn.disabled = false;
+          btn.textContent = "Sign up";
+
+          if (!res.ok) {
+            err.textContent = res.error || "Could not sign up.";
+            return;
+          }
+          location.href = "tasks.html";
+        });
+      });
+    </script>
+  </body>
+</html>

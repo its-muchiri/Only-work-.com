@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tasks | Onlywork</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="app-body">
+    <script src="auth.js"></script>
+    <script>
+      // Fast sync guard — redirects before paint if no session in storage
+      if (!window.OnlyworkAuth || !OnlyworkAuth.getSession()) {
+        location.replace("login.html?next=" + encodeURIComponent("tasks.html"));
+      }
+    </script>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--1" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--2" aria-hidden="true"></div>
+
+    <header class="app-topbar">
+      <div class="app-topbar-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-text">Onlywork<span class="brand-tld">.com</span></span>
+        </a>
+        <nav class="app-nav" aria-label="Workspace">
+          <a class="is-active" href="tasks.html">Tasks</a>
+          <a href="payout.html">Payouts</a>
+          <a href="news.html">News</a>
+          <a href="messages.html">Messages</a>
+        </nav>
+        <div class="app-user-row">
+          <span style="position:relative;display:inline-block;">
+            <span id="app-user-name"></span>
+            <span id="notif-badge" hidden style="position:absolute;top:-6px;right:-14px;background:var(--accent);color:#fff;font-size:0.65rem;font-weight:700;padding:1px 5px;border-radius:999px;"></span>
+          </span>
+          <button type="button" class="btn btn-outline btn-small" id="logout-btn">Log out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <h1 class="page-title">Tasks</h1>
+      <p class="page-lede">Claim guided sessions, complete them, and submit for review. Approved work earns a payout.</p>
+
+      <!-- Filters -->
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;align-items:center;">
+        <input
+          id="tasks-search"
+          type="search"
+          placeholder="Search tasks…"
+          style="flex:1;min-width:200px;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-elevated-2);color:var(--text);font:inherit;font-size:0.9rem;"
+        />
+        <select id="tasks-filter-category"
+          style="padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-elevated-2);color:var(--text);font:inherit;font-size:0.9rem;">
+          <option value="">All categories</option>
+          <option value="Data Collection">Data Collection</option>
+          <option value="Annotation">Annotation</option>
+          <option value="Video">Video</option>
+          <option value="Audio">Audio</option>
+          <option value="Transcription">Transcription</option>
+          <option value="Review">Review</option>
+          <option value="Other">Other</option>
+        </select>
+        <select id="tasks-filter-priority"
+          style="padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-elevated-2);color:var(--text);font:inherit;font-size:0.9rem;">
+          <option value="">All priorities</option>
+          <option value="URGENT">Urgent</option>
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="LOW">Low</option>
+        </select>
+        <span id="tasks-count" style="font-size:0.85rem;color:var(--muted);white-space:nowrap;"></span>
+      </div>
+
+      <!-- Available Queue -->
+      <section class="panel" aria-labelledby="queue-heading">
+        <h2 id="queue-heading">Available queue</h2>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Payout</th>
+                <th>Deadline</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th><span class="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody id="tasks-tbody">
+              <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted);">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="tasks-pagination" style="display:flex;gap:10px;align-items:center;justify-content:center;margin-top:14px;"></div>
+      </section>
+
+      <!-- My Active Tasks -->
+      <section class="panel" aria-labelledby="my-tasks-heading">
+        <h2 id="my-tasks-heading">My active tasks</h2>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Payout</th>
+                <th>Deadline</th>
+                <th>Status</th>
+                <th><span class="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody id="my-tasks-tbody">
+              <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/tasks.js"></script>
+  </body>
+</html>

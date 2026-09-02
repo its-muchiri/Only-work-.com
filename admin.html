@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin | Onlywork</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .tab-bar { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+      .tab-btn { padding:9px 18px; border-radius:999px; border:1px solid var(--border); background:transparent; color:var(--muted); font:inherit; font-size:0.88rem; font-weight:500; cursor:pointer; transition:all 0.15s ease; }
+      .tab-btn.is-active { color:var(--text); border-color:rgba(139,92,246,0.45); background:rgba(139,92,246,0.14); }
+      .tab-panel { display:none; }
+      .tab-panel.is-active { display:block; }
+      .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+      @media(max-width:600px){ .form-row{ grid-template-columns:1fr; } }
+      .form-field select, .form-field textarea { width:100%; padding:11px 14px; border-radius:10px; border:1px solid var(--border); background:var(--bg-elevated-2); color:var(--text); font:inherit; font-size:0.9rem; }
+      .form-field textarea { resize:vertical; min-height:90px; }
+      .stat-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:20px; }
+      @media(max-width:900px){ .stat-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+      .stat-card { background:var(--bg-elevated); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; }
+      .stat-card-label { font-size:0.75rem; color:var(--muted-2); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px; }
+      .stat-card-value { font-size:1.6rem; font-weight:700; letter-spacing:-0.02em; }
+      .badge--pending { background:rgba(251,191,36,0.2); color:#fde68a; }
+      .form-success { color:var(--success); font-size:0.85rem; min-height:1.2em; }
+      .file-label { display:inline-block; padding:9px 16px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--muted); font-size:0.85rem; cursor:pointer; }
+      .review-form input[type=text], .review-form textarea { width:100%; padding:9px 12px; border-radius:8px; border:1px solid var(--border); background:var(--bg-elevated-2); color:var(--text); font:inherit; font-size:0.88rem; margin-bottom:8px; }
+    </style>
+  </head>
+  <body class="app-body">
+    <script src="auth.js"></script>
+    <script>
+      if (!window.OnlyworkAuth || !OnlyworkAuth.getSession()) {
+        location.replace("login.html?next=" + encodeURIComponent("admin.html"));
+      }
+    </script>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--1" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--2" aria-hidden="true"></div>
+
+    <header class="app-topbar">
+      <div class="app-topbar-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-text">Onlywork<span class="brand-tld">.com</span></span>
+        </a>
+        <nav class="app-nav" aria-label="Workspace">
+          <a href="tasks.html">Tasks</a>
+          <a href="payout.html">Payouts</a>
+          <a href="news.html">News</a>
+          <a href="messages.html">Messages</a>
+        </nav>
+        <div class="app-user-row">
+          <span id="app-user-name"></span>
+          <button type="button" class="btn btn-outline btn-small" id="logout-btn">Log out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <h1 class="page-title">Admin panel</h1>
+      <p class="page-lede">Manage tasks, review submissions, handle payouts, and monitor platform analytics.</p>
+
+      <!-- Tabs -->
+      <div class="tab-bar" role="tablist">
+        <button class="tab-btn is-active" role="tab" data-tab="tasks">Tasks</button>
+        <button class="tab-btn" role="tab" data-tab="users">Users</button>
+        <button class="tab-btn" role="tab" data-tab="payouts">Payouts</button>
+        <button class="tab-btn" role="tab" data-tab="analytics">Analytics</button>
+      </div>
+
+      <!-- ── Tab: Tasks ─────────────────────────────────────────────── -->
+      <div class="tab-panel is-active" id="tab-tasks">
+
+        <!-- Create task form -->
+        <div class="panel" style="margin-bottom:16px;">
+          <h2>Create new task</h2>
+          <form id="create-task-form">
+            <p id="create-error" class="form-error" role="alert"></p>
+            <p id="create-success" class="form-success" role="status"></p>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="ct-title">Title</label>
+                <input id="ct-title" name="title" type="text" required />
+              </div>
+              <div class="form-field">
+                <label for="ct-category">Category</label>
+                <select id="ct-category" name="category">
+                  <option value="Data Collection">Data Collection</option>
+                  <option value="Annotation">Annotation</option>
+                  <option value="Video">Video</option>
+                  <option value="Audio">Audio</option>
+                  <option value="Transcription">Transcription</option>
+                  <option value="Review">Review</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="ct-description">Description</label>
+              <textarea id="ct-description" name="description" required></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="ct-payout">Payout (USD)</label>
+                <input id="ct-payout" name="payout" type="number" min="0.01" step="0.01" required />
+              </div>
+              <div class="form-field">
+                <label for="ct-deadline">Deadline</label>
+                <input id="ct-deadline" name="deadline" type="date" required />
+              </div>
+              <div class="form-field">
+                <label for="ct-priority">Priority</label>
+                <select id="ct-priority" name="priority">
+                  <option value="LOW">Low</option>
+                  <option value="MEDIUM" selected>Medium</option>
+                  <option value="HIGH">High</option>
+                  <option value="URGENT">Urgent</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-field">
+              <label>Attachment (optional)</label>
+              <input type="file" id="ct-file" name="attachment" style="display:none;" />
+              <label for="ct-file" class="file-label" id="ct-file-label">Choose file…</label>
+            </div>
+            <button type="submit" class="btn btn-primary">Create task</button>
+          </form>
+        </div>
+
+        <!-- All tasks table -->
+        <div class="panel">
+          <h2>All tasks</h2>
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Payout</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Worker</th>
+                  <th><span class="sr-only">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody id="admin-tasks-tbody">
+                <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Review submissions -->
+        <div class="panel">
+          <h2>Pending submissions</h2>
+          <div id="pending-submissions-list">
+            <p style="color:var(--muted);font-size:0.9rem;">Loading…</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tab: Users ─────────────────────────────────────────────── -->
+      <div class="tab-panel" id="tab-users">
+        <div class="panel">
+          <h2>Workers</h2>
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Joined</th>
+                  <th>Tasks</th>
+                  <th>Status</th>
+                  <th><span class="sr-only">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tab: Payouts ───────────────────────────────────────────── -->
+      <div class="tab-panel" id="tab-payouts">
+        <div class="panel">
+          <h2>All payouts</h2>
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Worker</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Stripe ID</th>
+                  <th><span class="sr-only">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody id="payouts-tbody">
+                <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted);">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tab: Analytics ────────────────────────────────────────── -->
+      <div class="tab-panel" id="tab-analytics">
+        <div class="stat-grid" id="analytics-stats">
+          <div class="stat-card"><div class="stat-card-label">Total Tasks</div><div class="stat-card-value" id="an-total-tasks">—</div></div>
+          <div class="stat-card"><div class="stat-card-label">Total Paid Out</div><div class="stat-card-value" style="color:var(--success);" id="an-paid-out">—</div></div>
+          <div class="stat-card"><div class="stat-card-label">Active Workers</div><div class="stat-card-value" style="color:var(--accent-bright);" id="an-workers">—</div></div>
+          <div class="stat-card"><div class="stat-card-label">Completed Tasks</div><div class="stat-card-value" style="color:var(--accent-2);" id="an-completed">—</div></div>
+        </div>
+        <div class="grid-2">
+          <div class="panel">
+            <h2>Tasks by status</h2>
+            <div id="analytics-status-list" style="color:var(--muted);font-size:0.9rem;">Loading…</div>
+          </div>
+          <div class="panel">
+            <h2>Top earners</h2>
+            <div id="analytics-top-workers" style="color:var(--muted);font-size:0.9rem;">Loading…</div>
+          </div>
+        </div>
+        <div class="panel">
+          <h2>Tasks by category</h2>
+          <div id="analytics-categories" style="color:var(--muted);font-size:0.9rem;">Loading…</div>
+        </div>
+      </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/admin.js"></script>
+  </body>
+</html>

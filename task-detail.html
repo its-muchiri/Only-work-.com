@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task | Onlywork</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .task-meta-row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:20px; }
+      .meta-chip { display:inline-flex; align-items:center; gap:6px; font-size:0.82rem; color:var(--muted); padding:5px 12px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.03); }
+      .timeline { display:flex; gap:0; margin:20px 0; }
+      .timeline-step { flex:1; text-align:center; font-size:0.75rem; color:var(--muted-2); position:relative; }
+      .timeline-step::before { content:''; display:block; width:24px; height:24px; border-radius:50%; border:2px solid var(--border); background:var(--bg-elevated-2); margin:0 auto 6px; }
+      .timeline-step.done::before { background:var(--accent); border-color:var(--accent); }
+      .timeline-step.active::before { background:transparent; border-color:var(--accent-bright); box-shadow:0 0 0 3px rgba(167,139,250,0.25); }
+      .timeline-step + .timeline-step::after { content:''; position:absolute; top:11px; right:50%; left:-50%; height:2px; background:var(--border); z-index:-1; }
+      .timeline-step.done + .timeline-step::after { background:var(--accent); }
+      .submit-form textarea { width:100%; padding:12px 14px; border-radius:10px; border:1px solid var(--border); background:var(--bg-elevated-2); color:var(--text); font:inherit; font-size:0.9rem; resize:vertical; min-height:120px; box-sizing:border-box; }
+      .submit-form textarea:focus { outline:2px solid rgba(139,92,246,0.4); outline-offset:1px; }
+      .file-label { display:inline-block; padding:9px 16px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--muted); font-size:0.85rem; cursor:pointer; }
+      .file-label:hover { border-color:rgba(255,255,255,0.2); }
+      .task-description { color:var(--text-secondary); line-height:1.7; white-space:pre-wrap; }
+      .btn-full { width:100%; }
+    </style>
+  </head>
+  <body class="app-body">
+    <script src="auth.js"></script>
+    <script>
+      if (!window.OnlyworkAuth || !OnlyworkAuth.getSession()) {
+        location.replace("login.html?next=" + encodeURIComponent(location.pathname.split('/').pop() + location.search));
+      }
+    </script>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--1" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--2" aria-hidden="true"></div>
+
+    <header class="app-topbar">
+      <div class="app-topbar-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-text">Onlywork<span class="brand-tld">.com</span></span>
+        </a>
+        <nav class="app-nav" aria-label="Workspace">
+          <a href="tasks.html">Tasks</a>
+          <a href="payout.html">Payouts</a>
+          <a href="news.html">News</a>
+          <a href="messages.html">Messages</a>
+        </nav>
+        <div class="app-user-row">
+          <span id="app-user-name"></span>
+          <button type="button" class="btn btn-outline btn-small" id="logout-btn">Log out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <a href="tasks.html" class="btn btn-ghost btn-small" style="margin-bottom:16px;display:inline-flex;">&#8592; Back to tasks</a>
+      <div id="task-loading" style="color:var(--muted);padding:48px 0;text-align:center;">Loading task…</div>
+      <div id="task-content" hidden>
+
+        <!-- Task header -->
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+            <div>
+              <h1 class="page-title" id="task-title" style="margin-bottom:8px;"></h1>
+              <div class="task-meta-row">
+                <span class="meta-chip" id="task-category"></span>
+                <span id="task-priority-badge"></span>
+                <span class="meta-chip">Deadline: <strong id="task-deadline"></strong></span>
+                <span class="meta-chip">Payout: <strong id="task-payout" style="color:var(--success);"></strong></span>
+              </div>
+            </div>
+            <div id="task-status-badge"></div>
+          </div>
+
+          <!-- Status timeline -->
+          <div class="timeline" id="task-timeline" aria-label="Task progress">
+            <div class="timeline-step" data-step="OPEN">Open</div>
+            <div class="timeline-step" data-step="ASSIGNED">Assigned</div>
+            <div class="timeline-step" data-step="IN_PROGRESS">In Progress</div>
+            <div class="timeline-step" data-step="SUBMITTED">Submitted</div>
+            <div class="timeline-step" data-step="COMPLETED">Completed</div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="panel">
+          <h2>Description</h2>
+          <div class="task-description" id="task-description"></div>
+          <div id="task-attachment-wrap" hidden style="margin-top:16px;">
+            <a id="task-attachment-link" class="btn btn-outline btn-small" target="_blank" rel="noopener">&#128206; Download attachment</a>
+          </div>
+        </div>
+
+        <!-- Submit Work (worker only, when assigned) -->
+        <div class="panel" id="submit-panel" hidden>
+          <h2>Submit your work</h2>
+          <form id="submit-form" class="submit-form">
+            <p id="submit-error" class="form-error" role="alert"></p>
+            <div class="form-field">
+              <label for="submit-content">Describe your work</label>
+              <textarea id="submit-content" name="content" required placeholder="Explain what you did, any notes for the reviewer…"></textarea>
+            </div>
+            <div class="form-field">
+              <label>Attach deliverable (optional, max 10 MB)</label>
+              <input type="file" id="submit-file" name="attachment" accept="image/*,video/*,application/pdf" style="display:none;" />
+              <label for="submit-file" class="file-label" id="file-label-text">Choose file…</label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Submit work</button>
+          </form>
+        </div>
+
+        <!-- Submissions history -->
+        <div class="panel" id="submissions-panel" hidden>
+          <h2>Submissions</h2>
+          <div id="submissions-list"></div>
+        </div>
+
+      </div>
+    </main>
+
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+      (function () {
+        var taskId = new URLSearchParams(location.search).get('id');
+        if (!taskId) { location.replace('tasks.html'); }
+
+        var STATUS_ORDER = ['OPEN','ASSIGNED','IN_PROGRESS','SUBMITTED','COMPLETED'];
+
+        function escHtml(s) {
+          return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function fmtDate(d) {
+          return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+        }
+
+        function priorityClass(p) {
+          return { LOW:'badge--open', MEDIUM:'badge--progress', HIGH:'badge--progress', URGENT:'badge--done' }[p] || 'badge--open';
+        }
+
+        function statusBadgeClass(s) {
+          return { OPEN:'badge--open', ASSIGNED:'badge--progress', IN_PROGRESS:'badge--progress',
+            SUBMITTED:'badge--progress', COMPLETED:'badge--done', CANCELLED:'' }[s] || '';
+        }
+
+        function updateTimeline(status) {
+          var idx = STATUS_ORDER.indexOf(status);
+          document.querySelectorAll('#task-timeline .timeline-step').forEach(function (el, i) {
+            el.classList.remove('done','active');
+            if (i < idx) el.classList.add('done');
+            else if (i === idx) el.classList.add('active');
+          });
+        }
+
+        function renderSubmissions(submissions, userId, isAdmin) {
+          var panel = document.getElementById('submissions-panel');
+          var list = document.getElementById('submissions-list');
+          var visible = submissions.filter(function (s) { return isAdmin || s.userId === userId; });
+          if (!visible.length) return;
+          panel.hidden = false;
+          list.innerHTML = visible.map(function (s) {
+            var statusCls = { PENDING:'badge--progress', APPROVED:'badge--done', REJECTED:'badge--open' }[s.status] || '';
+            return '<div style="border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;">' +
+              '<div style="display:flex;justify-content:space-between;margin-bottom:8px;">' +
+              '<span style="font-size:0.8rem;color:var(--muted);">' + fmtDate(s.createdAt) +
+              (s.user ? ' · ' + escHtml(s.user.name) : '') + '</span>' +
+              '<span class="badge ' + statusCls + '">' + s.status + '</span></div>' +
+              '<p style="margin:0 0 8px;color:var(--text-secondary);font-size:0.9rem;">' + escHtml(s.content) + '</p>' +
+              (s.feedback ? '<p style="margin:0;font-size:0.85rem;color:var(--muted);border-left:2px solid var(--border);padding-left:10px;">Feedback: ' + escHtml(s.feedback) + '</p>' : '') +
+              '</div>';
+          }).join('');
+        }
+
+        async function loadTask() {
+          var json = await window.OnlyworkAPI.get('/tasks/' + taskId);
+          if (!json.ok) {
+            document.getElementById('task-loading').textContent = json.error || 'Task not found.';
+            return;
+          }
+          var task = json.data.task;
+          var user = window.OnlyworkAuth ? window.OnlyworkAuth.getUser() : null;
+          var userId = user ? user.id : null;
+          var isAdmin = user && user.role === 'ADMIN';
+          var isMyTask = task.assignedTo === userId;
+
+          document.title = task.title + ' | Onlywork';
+          document.getElementById('task-title').textContent = task.title;
+          document.getElementById('task-category').textContent = task.category;
+          document.getElementById('task-priority-badge').innerHTML =
+            '<span class="badge ' + priorityClass(task.priority) + '">' + task.priority + '</span>';
+          document.getElementById('task-deadline').textContent = fmtDate(task.deadline);
+          document.getElementById('task-payout').textContent = '$' + Number(task.payout).toFixed(2);
+          document.getElementById('task-status-badge').innerHTML =
+            '<span class="badge ' + statusBadgeClass(task.status) + '">' + task.status.replace('_',' ') + '</span>';
+          document.getElementById('task-description').textContent = task.description;
+
+          if (task.attachmentUrl) {
+            var wrap = document.getElementById('task-attachment-wrap');
+            wrap.hidden = false;
+            document.getElementById('task-attachment-link').href = task.attachmentUrl;
+          }
+
+          updateTimeline(task.status);
+
+          // Show submit form only if task is assigned to current worker
+          if (isMyTask && (task.status === 'ASSIGNED' || task.status === 'IN_PROGRESS')) {
+            document.getElementById('submit-panel').hidden = false;
+          }
+
+          if (task.submissions && task.submissions.length) {
+            renderSubmissions(task.submissions, userId, isAdmin);
+          }
+
+          document.getElementById('task-loading').hidden = true;
+          document.getElementById('task-content').hidden = false;
+        }
+
+        function setupSubmitForm() {
+          var fileInput = document.getElementById('submit-file');
+          var fileLabel = document.getElementById('file-label-text');
+          if (fileInput) {
+            fileInput.addEventListener('change', function () {
+              fileLabel.textContent = fileInput.files[0] ? fileInput.files[0].name : 'Choose file…';
+            });
+          }
+
+          var form = document.getElementById('submit-form');
+          var err = document.getElementById('submit-error');
+          if (!form) return;
+
+          form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            err.textContent = '';
+            var btn = form.querySelector('[type=submit]');
+            btn.disabled = true;
+            btn.textContent = 'Submitting…';
+
+            var fd = new FormData();
+            fd.append('content', document.getElementById('submit-content').value);
+            if (fileInput && fileInput.files[0]) fd.append('attachment', fileInput.files[0]);
+
+            var json = await window.OnlyworkAPI.upload('/tasks/' + taskId + '/submit', fd);
+
+            btn.disabled = false;
+            btn.textContent = 'Submit work';
+
+            if (!json.ok) { err.textContent = json.error || 'Could not submit.'; return; }
+            if (window.OnlyworkAuth) window.OnlyworkAuth.showToast('Work submitted!', 'success');
+            setTimeout(function () { loadTask(); }, 800);
+          });
+        }
+
+        function setupSocket() {
+          if (!window.io) return;
+          var socket = io();
+          var user = window.OnlyworkAuth ? window.OnlyworkAuth.getUser() : null;
+          if (user) socket.emit('join', user.id);
+          socket.on('task_approved', function (d) { if (d.taskId === taskId) loadTask(); });
+          socket.on('task_rejected', function (d) { if (d.taskId === taskId) loadTask(); });
+        }
+
+        document.addEventListener('DOMContentLoaded', async function () {
+          if (window.OnlyworkAuth) {
+            var ok = await window.OnlyworkAuth.guardAppPage();
+            if (!ok) return;
+            window.OnlyworkAuth.initAppHeader();
+          }
+          setupSubmitForm();
+          setupSocket();
+          await loadTask();
+        });
+      })();
+    </script>
+  </body>
+</html>

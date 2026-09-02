@@ -27,7 +27,8 @@ jobs:
       - name: Collect public site files
         run: |
           mkdir site
-          cp index.html styles.css script.js site/
+          cp index.html login.html signup.html tasks.html payout.html news.html messages.html \
+            styles.css script.js auth.js site/
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | Onlywork</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .stat-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:20px; }
+      @media(max-width:900px){ .stat-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+      @media(max-width:520px){ .stat-grid{ grid-template-columns:1fr; } }
+      .stat-card { background:var(--bg-elevated); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; }
+      .stat-card-label { font-size:0.78rem; color:var(--muted-2); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px; }
+      .stat-card-value { font-size:1.75rem; font-weight:700; letter-spacing:-0.02em; }
+      .stat-card-value--green { color:var(--success); }
+      .stat-card-value--teal { color:var(--accent-2); }
+      .stat-card-value--purple { color:var(--accent-bright); }
+      .notif-item { display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--border); }
+      .notif-item:last-child { border-bottom:none; }
+      .notif-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); margin-top:5px; flex-shrink:0; }
+      .notif-dot--read { background:var(--muted-2); }
+      .notif-msg { font-size:0.88rem; color:var(--text-secondary); }
+      .notif-time { font-size:0.75rem; color:var(--muted-2); margin-top:2px; }
+      .chart-wrap { position:relative; height:200px; }
+      .badge--pending { background:color-mix(in srgb,#fbbf24 22%,transparent); color:#fde68a; }
+    </style>
+  </head>
+  <body class="app-body">
+    <script src="auth.js"></script>
+    <script>
+      if (!window.OnlyworkAuth || !OnlyworkAuth.getSession()) {
+        location.replace("login.html?next=" + encodeURIComponent("dashboard.html"));
+      }
+    </script>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--1" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--2" aria-hidden="true"></div>
+
+    <header class="app-topbar">
+      <div class="app-topbar-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-text">Onlywork<span class="brand-tld">.com</span></span>
+        </a>
+        <nav class="app-nav" aria-label="Workspace">
+          <a href="tasks.html">Tasks</a>
+          <a href="payout.html">Payouts</a>
+          <a href="news.html">News</a>
+          <a href="messages.html">Messages</a>
+        </nav>
+        <div class="app-user-row">
+          <span id="app-user-name"></span>
+          <button type="button" class="btn btn-outline btn-small" id="logout-btn">Log out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-lede">Your earnings, active tasks, and notifications at a glance.</p>
+
+      <!-- Stats bar -->
+      <div class="stat-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-card-label">Tasks Completed</div><div class="stat-card-value" id="stat-completed">—</div></div>
+        <div class="stat-card"><div class="stat-card-label">Total Earned</div><div class="stat-card-value stat-card-value--green" id="stat-earned">—</div></div>
+        <div class="stat-card"><div class="stat-card-label">Pending Payout</div><div class="stat-card-value stat-card-value--teal" id="stat-pending">—</div></div>
+        <div class="stat-card"><div class="stat-card-label">Active Tasks</div><div class="stat-card-value stat-card-value--purple" id="stat-active">—</div></div>
+      </div>
+
+      <div class="grid-2">
+        <!-- My Active Tasks -->
+        <section class="panel" aria-labelledby="active-tasks-heading">
+          <h2 id="active-tasks-heading">My active tasks</h2>
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Status</th>
+                  <th>Deadline</th>
+                  <th><span class="sr-only">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody id="active-tasks-tbody">
+                <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Notifications -->
+        <section class="panel" aria-labelledby="notif-heading">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <h2 id="notif-heading" style="margin:0;">Notifications</h2>
+            <button type="button" class="btn btn-ghost btn-small" id="mark-all-read">Mark all read</button>
+          </div>
+          <div id="notif-list"><p style="color:var(--muted);font-size:0.9rem;">Loading…</p></div>
+        </section>
+      </div>
+
+      <!-- Earnings Chart -->
+      <section class="panel" aria-labelledby="earnings-heading">
+        <h2 id="earnings-heading">Monthly earnings (last 6 months)</h2>
+        <div class="chart-wrap">
+          <canvas id="earnings-chart"></canvas>
+        </div>
+      </section>
+
+      <!-- Recent Submissions -->
+      <section class="panel" aria-labelledby="submissions-heading">
+        <h2 id="submissions-heading">Recent submissions</h2>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Submitted</th>
+                <th>Status</th>
+                <th>Feedback</th>
+              </tr>
+            </thead>
+            <tbody id="submissions-tbody">
+              <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Payout History -->
+      <section class="panel" aria-labelledby="payouts-heading">
+        <h2 id="payouts-heading">Payout history</h2>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Reference</th>
+              </tr>
+            </thead>
+            <tbody id="payouts-tbody">
+              <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/dashboard.js"></script>
+  </body>
+</html>

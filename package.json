@@ -1,0 +1,14 @@
+{
+  "name": "onlywork",
+  "version": "1.0.0",
+  "description": "Onlywork demo website with backend auth and member pages.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.18.4",
+    "express-session": "^1.17.4"
+  }
+}

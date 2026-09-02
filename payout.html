@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payouts | Onlywork</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .payout-amount { margin: 0 0 8px; font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; }
+      .payout-sub { margin: 0; color: var(--muted); font-size: 0.92rem; }
+      .stripe-connect-hint { font-size: 0.85rem; color: var(--muted-2); margin-top: 10px; }
+    </style>
+  </head>
+  <body class="app-body">
+    <script src="auth.js"></script>
+    <script>
+      if (!window.OnlyworkAuth || !OnlyworkAuth.getSession()) {
+        location.replace("login.html?next=" + encodeURIComponent("payout.html"));
+      }
+    </script>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--1" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--2" aria-hidden="true"></div>
+
+    <header class="app-topbar">
+      <div class="app-topbar-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-text">Onlywork<span class="brand-tld">.com</span></span>
+        </a>
+        <nav class="app-nav" aria-label="Workspace">
+          <a href="tasks.html">Tasks</a>
+          <a class="is-active" href="payout.html">Payouts</a>
+          <a href="news.html">News</a>
+          <a href="messages.html">Messages</a>
+        </nav>
+        <div class="app-user-row">
+          <span id="app-user-name"></span>
+          <button type="button" class="btn btn-outline btn-small" id="logout-btn">Log out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <h1 class="page-title">Payouts</h1>
+      <p class="page-lede">Track your earnings and payout history. Payouts are sent via Stripe to your connected account.</p>
+
+      <section class="grid-2" style="margin-bottom:20px;">
+        <div class="panel">
+          <h2>Pending earnings</h2>
+          <p class="payout-amount" id="pending-amount">—</p>
+          <p class="payout-sub">Awaiting approved task reviews</p>
+        </div>
+        <div class="panel">
+          <h2>Total earned</h2>
+          <p class="payout-amount" id="total-earned" style="color:var(--success);">—</p>
+          <p class="payout-sub" id="tasks-completed-sub">— tasks completed</p>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="history-heading">
+        <h2 id="history-heading">Payout history</h2>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Stripe ID</th>
+              </tr>
+            </thead>
+            <tbody id="payouts-tbody">
+              <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p id="no-stripe-msg" hidden class="stripe-connect-hint">
+          No Stripe account connected.
+          <a href="profile.html" style="color:var(--accent-bright);">Connect one on your profile</a> to receive payouts.
+        </p>
+      </section>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+      (function () {
+        function fmtDate(d) {
+          return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+        function fmtMoney(n) { return '$' + Number(n).toFixed(2); }
+
+        function statusBadge(s) {
+          var map = {
+            PENDING: 'badge--progress',
+            PROCESSING: 'badge--progress',
+            PAID: 'badge--done',
+            FAILED: 'badge--open',
+          };
+          return '<span class="badge ' + (map[s] || '') + '">' + s + '</span>';
+        }
+
+        function escHtml(s) {
+          return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        async function loadStats() {
+          var json = await window.OnlyworkAPI.get('/users/me/stats');
+          if (!json.ok) return;
+          var d = json.data;
+          document.getElementById('pending-amount').textContent = fmtMoney(d.pendingPayout);
+          document.getElementById('total-earned').textContent = fmtMoney(d.totalEarned);
+          document.getElementById('tasks-completed-sub').textContent = d.tasksCompleted + ' task' + (d.tasksCompleted === 1 ? '' : 's') + ' completed';
+        }
+
+        async function loadPayouts() {
+          var json = await window.OnlyworkAPI.get('/payouts/my-payouts');
+          var tbody = document.getElementById('payouts-tbody');
+          if (!json.ok) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);">Could not load payouts.</td></tr>';
+            return;
+          }
+          var payouts = json.data.payouts;
+          if (!payouts.length) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);">No payouts yet. Complete tasks to start earning.</td></tr>';
+            checkStripeConnected();
+            return;
+          }
+          tbody.innerHTML = payouts.map(function (p) {
+            return '<tr>' +
+              '<td>' + fmtDate(p.createdAt) + '</td>' +
+              '<td style="font-weight:600;">' + fmtMoney(p.amount) + '</td>' +
+              '<td>' + statusBadge(p.status) + '</td>' +
+              '<td style="font-size:0.8rem;color:var(--muted);">' + escHtml(p.stripePayoutId || '—') + '</td>' +
+              '</tr>';
+          }).join('');
+        }
+
+        async function checkStripeConnected() {
+          var json = await window.OnlyworkAPI.get('/users/me');
+          if (json.ok && !json.data.user.stripeId) {
+            document.getElementById('no-stripe-msg').hidden = false;
+          }
+        }
+
+        document.addEventListener('DOMContentLoaded', async function () {
+          if (window.OnlyworkAuth) {
+            var ok = await window.OnlyworkAuth.guardAppPage();
+            if (!ok) return;
+            window.OnlyworkAuth.initAppHeader();
+          }
+          await Promise.all([loadStats(), loadPayouts()]);
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,71 +1,25 @@
-# 🚀 Onlywork.com
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&height=150&section=header&text=onlywork&fontSize=50"/>
+</p>
 
-A clean, responsive landing page for **Onlywork** — a contributor-style, remote-friendly productivity platform designed to help users focus on meaningful work.
+[![License](https://img.shields.io/badge/license-MIT-green)](https://img.shields.io/badge/license-MIT-green) [![Build](https://img.shields.io/badge/build-passing-brightgreen)](https://img.shields.io/badge/build-passing-brightgreen)
 
-This project demonstrates modern frontend structure, responsive design, and clean UI principles inspired by high-quality SaaS marketing pages.
+## 📖 About
+Project description
 
-> ⚠️ This project contains original content and is not affiliated with Atlas Capture.
+### Frontend
+![react](https://img.shields.io/badge/react-react-informational?style=flat-square) ![tailwind](https://img.shields.io/badge/tailwind-tailwind-informational?style=flat-square)
 
----
+### Backend
+![python](https://img.shields.io/badge/python-python-informational?style=flat-square) ![fastapi](https://img.shields.io/badge/fastapi-fastapi-informational?style=flat-square)
 
-## 🌐 Live Demo
+### Tools
+![docker](https://img.shields.io/badge/docker-docker-informational?style=flat-square) ![github-actions](https://img.shields.io/badge/github-actions-github-actions-informational?style=flat-square)
 
-https://github.com/its-muchiri/Only-work-.com
 
----
 
-## 🧠 Project Overview
+## ⚡ Workflow
+![GitHub Actions](https://github.com/onlywork/onlywork/actions/workflows/ci.yml/badge.svg)
 
-Onlywork is built as a **minimal, distraction-free landing page** with a strong focus on:
-
-- Clarity of message  
-- Clean user experience  
-- Responsive design across devices  
-- Lightweight performance  
-
-It is ideal as a foundation for:
-- SaaS landing pages  
-- Startup websites  
-- Product marketing pages  
-
----
-
-## ✨ Features
-
-- 📱 Fully Responsive Design  
-- ⚡ Fast Loading & Lightweight  
-- 🎯 Clean UI/UX Structure  
-- 🧩 Modular File Organization  
-- 🔧 Easy to Customize  
-
----
-
-## 🛠 Tech Stack
-
-- HTML5  
-- CSS3 (Flexbox & Responsive Design)  
-- JavaScript (Vanilla)  
-- Git & GitHub  
-
----
-
-## 📸 Screenshots
-![alt text](1212.png)
-![alt text](3434.png)
-> Example:
-> - Homepage view  
-> - Mobile responsiveness  
-> - Key sections  
-
----
-
-## 📂 Project Structure
-
-```text
-.github/
-  workflows/
-    pages.yml
-index.html
-styles.css
-script.js
-README.md
+## 📄 License
+MIT

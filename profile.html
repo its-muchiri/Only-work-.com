@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile | Onlywork</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .avatar-wrap { display:flex; align-items:center; gap:18px; margin-bottom:20px; }
+      .avatar-img { width:72px; height:72px; border-radius:16px; background:linear-gradient(135deg,var(--accent-bright),var(--accent-deep)); object-fit:cover; border:2px solid var(--border); }
+      .avatar-placeholder { width:72px; height:72px; border-radius:16px; background:linear-gradient(135deg,var(--accent-bright),var(--accent-deep)); display:grid; place-items:center; font-size:1.6rem; font-weight:700; color:#fff; border:2px solid var(--border); }
+      .stat-row { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:20px; }
+      @media(max-width:600px){ .stat-row{ grid-template-columns:1fr; } }
+      .stat-mini { background:var(--bg-elevated); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; }
+      .stat-mini-label { font-size:0.75rem; color:var(--muted-2); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+      .stat-mini-value { font-size:1.4rem; font-weight:700; margin-top:2px; }
+      .stripe-status { padding:12px 16px; border-radius:var(--radius); border:1px solid var(--border); background:rgba(255,255,255,0.03); display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+      .connected-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--success); margin-right:6px; }
+      .not-connected-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--muted-2); margin-right:6px; }
+      .form-success { color:var(--success); font-size:0.85rem; min-height:1.1em; }
+      .file-label { display:inline-block; padding:8px 16px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--muted); font-size:0.85rem; cursor:pointer; }
+      .file-label:hover { border-color:rgba(255,255,255,0.2); }
+    </style>
+  </head>
+  <body class="app-body">
+    <script src="auth.js"></script>
+    <script>
+      if (!window.OnlyworkAuth || !OnlyworkAuth.getSession()) {
+        location.replace("login.html?next=" + encodeURIComponent("profile.html"));
+      }
+    </script>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--1" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--2" aria-hidden="true"></div>
+
+    <header class="app-topbar">
+      <div class="app-topbar-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-text">Onlywork<span class="brand-tld">.com</span></span>
+        </a>
+        <nav class="app-nav" aria-label="Workspace">
+          <a href="tasks.html">Tasks</a>
+          <a href="payout.html">Payouts</a>
+          <a href="news.html">News</a>
+          <a href="messages.html">Messages</a>
+        </nav>
+        <div class="app-user-row">
+          <span id="app-user-name"></span>
+          <button type="button" class="btn btn-outline btn-small" id="logout-btn">Log out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <h1 class="page-title">My profile</h1>
+
+      <!-- Stats -->
+      <div class="stat-row">
+        <div class="stat-mini"><div class="stat-mini-label">Joined</div><div class="stat-mini-value" id="stat-joined">—</div></div>
+        <div class="stat-mini"><div class="stat-mini-label">Tasks Completed</div><div class="stat-mini-value" id="stat-completed" style="color:var(--accent-bright);">—</div></div>
+        <div class="stat-mini"><div class="stat-mini-label">Total Earned</div><div class="stat-mini-value" id="stat-earned" style="color:var(--success);">—</div></div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Edit profile -->
+        <section class="panel">
+          <h2>Account details</h2>
+
+          <!-- Avatar -->
+          <div class="avatar-wrap">
+            <div id="avatar-el" class="avatar-placeholder">?</div>
+            <div>
+              <input type="file" id="avatar-file" accept="image/*" style="display:none;" />
+              <label for="avatar-file" class="file-label">Change avatar</label>
+              <p style="margin:6px 0 0;color:var(--muted-2);font-size:0.78rem;">Max 10 MB · JPEG, PNG, WEBP</p>
+            </div>
+          </div>
+
+          <form id="profile-form">
+            <p id="profile-error" class="form-error" role="alert"></p>
+            <p id="profile-success" class="form-success" role="status"></p>
+            <div class="form-field">
+              <label for="pf-name">Full name</label>
+              <input id="pf-name" name="name" type="text" autocomplete="name" />
+            </div>
+            <div class="form-field">
+              <label for="pf-email">Email</label>
+              <input id="pf-email" name="email" type="email" autocomplete="email" />
+            </div>
+            <button type="submit" class="btn btn-primary">Save changes</button>
+          </form>
+        </section>
+
+        <!-- Change password -->
+        <section class="panel">
+          <h2>Change password</h2>
+          <form id="password-form">
+            <p id="pw-error" class="form-error" role="alert"></p>
+            <p id="pw-success" class="form-success" role="status"></p>
+            <div class="form-field">
+              <label for="pw-current">Current password</label>
+              <input id="pw-current" name="currentPassword" type="password" autocomplete="current-password" required />
+            </div>
+            <div class="form-field">
+              <label for="pw-new">New password</label>
+              <input id="pw-new" name="newPassword" type="password" autocomplete="new-password" minlength="6" required />
+            </div>
+            <button type="submit" class="btn btn-outline">Update password</button>
+          </form>
+        </section>
+      </div>
+
+      <!-- Stripe Connect -->
+      <section class="panel">
+        <h2>Stripe payout account</h2>
+        <div class="stripe-status">
+          <div>
+            <span id="stripe-dot" class="not-connected-dot"></span>
+            <span id="stripe-label" style="font-size:0.92rem;color:var(--muted);">Not connected</span>
+            <p style="margin:4px 0 0;font-size:0.82rem;color:var(--muted-2);">Connect a Stripe account to receive payouts directly.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="stripe-connect-btn">Connect Stripe</button>
+        </div>
+        <p id="stripe-success-msg" hidden style="margin-top:12px;color:var(--success);font-size:0.88rem;">Stripe account connected successfully!</p>
+      </section>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+      (function () {
+        function fmtDate(d) {
+          return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+        }
+
+        async function loadProfile() {
+          var json = await window.OnlyworkAPI.get('/users/me');
+          if (!json.ok) return;
+          var u = json.data.user;
+
+          // Avatar
+          var avatarEl = document.getElementById('avatar-el');
+          if (u.avatarUrl) {
+            var img = document.createElement('img');
+            img.className = 'avatar-img';
+            img.src = u.avatarUrl;
+            img.alt = u.name;
+            avatarEl.replaceWith(img);
+          } else {
+            avatarEl.textContent = (u.name || '?').charAt(0).toUpperCase();
+          }
+
+          document.getElementById('pf-name').value = u.name || '';
+          document.getElementById('pf-email').value = u.email || '';
+          document.getElementById('stat-joined').textContent = fmtDate(u.createdAt);
+
+          // Stripe
+          if (u.stripeId) {
+            document.getElementById('stripe-dot').className = 'connected-dot';
+            document.getElementById('stripe-label').textContent = 'Connected (' + u.stripeId + ')';
+            document.getElementById('stripe-connect-btn').textContent = 'Reconnect';
+          }
+
+          // Show stripe success msg if redirected back
+          var params = new URLSearchParams(location.search);
+          if (params.get('stripe') === 'success') {
+            document.getElementById('stripe-success-msg').hidden = false;
+          }
+        }
+
+        async function loadStats() {
+          var json = await window.OnlyworkAPI.get('/users/me/stats');
+          if (!json.ok) return;
+          var d = json.data;
+          document.getElementById('stat-completed').textContent = d.tasksCompleted;
+          document.getElementById('stat-earned').textContent = '$' + Number(d.totalEarned).toFixed(2);
+        }
+
+        function setupAvatarUpload() {
+          var fileInput = document.getElementById('avatar-file');
+          if (!fileInput) return;
+          fileInput.addEventListener('change', async function () {
+            if (!fileInput.files[0]) return;
+            var fd = new FormData();
+            fd.append('avatar', fileInput.files[0]);
+            var r = await window.OnlyworkAPI.upload('/users/me/avatar', fd);
+            if (r.ok) {
+              window.OnlyworkAuth && window.OnlyworkAuth.showToast('Avatar updated!', 'success');
+              var newUrl = r.data.user.avatarUrl;
+              var el = document.querySelector('.avatar-placeholder, .avatar-img');
+              if (el && newUrl) { el.src = newUrl; el.className = 'avatar-img'; }
+            } else {
+              window.OnlyworkAuth && window.OnlyworkAuth.showToast(r.error || 'Upload failed.', 'error');
+            }
+          });
+        }
+
+        function setupProfileForm() {
+          var form = document.getElementById('profile-form');
+          var err = document.getElementById('profile-error');
+          var suc = document.getElementById('profile-success');
+          if (!form) return;
+          form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            err.textContent = ''; suc.textContent = '';
+            var fd = new FormData(form);
+            var body = {};
+            if (fd.get('name')) body.name = fd.get('name');
+            if (fd.get('email')) body.email = fd.get('email');
+            var r = await window.OnlyworkAPI.patch('/users/me', body);
+            if (r.ok) { suc.textContent = 'Profile saved.'; }
+            else { err.textContent = r.error || 'Could not save.'; }
+          });
+        }
+
+        function setupPasswordForm() {
+          var form = document.getElementById('password-form');
+          var err = document.getElementById('pw-error');
+          var suc = document.getElementById('pw-success');
+          if (!form) return;
+          form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            err.textContent = ''; suc.textContent = '';
+            var fd = new FormData(form);
+            var r = await window.OnlyworkAPI.post('/users/me/change-password', {
+              currentPassword: fd.get('currentPassword'),
+              newPassword: fd.get('newPassword'),
+            });
+            if (r.ok) { suc.textContent = 'Password updated. You will need to log in again.'; form.reset(); }
+            else { err.textContent = r.error || 'Could not update password.'; }
+          });
+        }
+
+        function setupStripeConnect() {
+          var btn = document.getElementById('stripe-connect-btn');
+          if (!btn) return;
+          btn.addEventListener('click', async function () {
+            btn.disabled = true; btn.textContent = 'Loading…';
+            var r = await window.OnlyworkAPI.post('/payouts/onboard');
+            btn.disabled = false; btn.textContent = 'Connect Stripe';
+            if (r.ok && r.data.url) { location.href = r.data.url; }
+            else { window.OnlyworkAuth && window.OnlyworkAuth.showToast(r.error || 'Stripe unavailable.', 'error'); }
+          });
+        }
+
+        document.addEventListener('DOMContentLoaded', async function () {
+          if (window.OnlyworkAuth) {
+            var ok = await window.OnlyworkAuth.guardAppPage();
+            if (!ok) return;
+            window.OnlyworkAuth.initAppHeader();
+          }
+          setupAvatarUpload();
+          setupProfileForm();
+          setupPasswordForm();
+          setupStripeConnect();
+          await Promise.all([loadProfile(), loadStats()]);
+        });
+      })();
+    </script>
+  </body>
+</html>

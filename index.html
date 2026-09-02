@@ -23,7 +23,7 @@
 
     <header class="site-header">
       <div class="container header-inner">
-        <a class="brand" href="#top">
+        <a class="brand" href="index.html">
           <span class="brand-mark" aria-hidden="true"></span>
           <span class="brand-text">Onlywork<span class="brand-tld">.com</span></span>
         </a>
@@ -31,10 +31,17 @@
           <a class="nav-link" href="#how">How it works</a>
           <a class="nav-link" href="#why">Why Onlywork</a>
           <a class="nav-link" href="#faq">FAQ</a>
+          <a class="nav-link js-logged-in-only" href="tasks.html" hidden>Workspace</a>
         </nav>
         <div class="header-actions">
-          <a class="btn btn-ghost" href="#apply">Download app</a>
-          <a class="btn btn-primary" href="#apply">Start earning</a>
+          <span class="header-actions-inner js-logged-out-only">
+            <a class="btn btn-ghost" href="login.html">Log in</a>
+            <a class="btn btn-primary" href="signup.html">Sign up</a>
+          </span>
+          <span class="header-actions-inner js-logged-in-only" hidden>
+            <span class="header-user" id="header-user-label" aria-live="polite"></span>
+            <a class="btn btn-primary" href="tasks.html">Open workspace</a>
+          </span>
         </div>
       </div>
     </header>
@@ -55,7 +62,7 @@
             weekly payouts, flexible hours, and clear instructions every step of the way.
           </p>
           <div class="hero-cta">
-            <a class="btn btn-primary btn-lg" href="#apply">Start earning today</a>
+            <a class="btn btn-primary btn-lg" href="signup.html">Start earning today</a>
             <a class="btn btn-outline btn-lg" href="#how">Learn how it works</a>
           </div>
           <ul class="hero-pills" role="list">
@@ -185,7 +192,7 @@
                 Create your profile, complete a quick orientation, and unlock your first paid
                 tasks in minutes—not weeks.
               </p>
-              <a class="btn btn-primary" href="#apply">Get the Onlywork app</a>
+              <a class="btn btn-primary" href="signup.html">Get the Onlywork app</a>
             </article>
           </div>
         </div>
@@ -313,8 +320,8 @@
             </p>
           </div>
           <div class="cta-actions">
-            <a class="btn btn-on-dark btn-lg" href="#">Get started now</a>
-            <a class="btn btn-outline-light btn-lg" href="#">Contact support</a>
+            <a class="btn btn-on-dark btn-lg" href="signup.html">Get started now</a>
+            <a class="btn btn-outline-light btn-lg" href="messages.html">Contact support</a>
           </div>
         </div>
       </section>
@@ -327,14 +334,21 @@
           <p class="footer-tag">Remote tasks that keep AI grounded in the real world.</p>
         </div>
         <div class="footer-links">
-          <a href="#">Opportunities</a>
-          <a href="#">Privacy</a>
-          <a href="#">Support</a>
+          <a href="tasks.html">Tasks</a>
+          <a href="news.html">News</a>
+          <a href="login.html">Log in</a>
+          <a href="signup.html">Sign up</a>
         </div>
         <p class="footer-copy">&copy; <span id="year"></span> Onlywork. Demo landing page.</p>
       </div>
     </footer>
 
+    <script src="auth.js"></script>
     <script src="script.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        if (window.OnlyworkAuth) OnlyworkAuth.initMarketingHeader();
+      });
+    </script>
   </body>
 </html>

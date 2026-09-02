@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>News | Onlywork</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="app-body">
+    <script src="auth.js"></script>
+    <script>
+      if (!window.OnlyworkAuth || !OnlyworkAuth.getSession()) {
+        location.replace("login.html?next=" + encodeURIComponent("news.html"));
+      }
+    </script>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--1" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--2" aria-hidden="true"></div>
+
+    <header class="app-topbar">
+      <div class="app-topbar-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-text">Onlywork<span class="brand-tld">.com</span></span>
+        </a>
+        <nav class="app-nav" aria-label="Workspace">
+          <a href="tasks.html">Tasks</a>
+          <a href="payout.html">Payouts</a>
+          <a class="is-active" href="news.html">News</a>
+          <a href="messages.html">Messages</a>
+        </nav>
+        <div class="app-user-row">
+          <span id="app-user-name"></span>
+          <button type="button" class="btn btn-outline btn-small" id="logout-btn">Log out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <h1 class="page-title">Program news</h1>
+      <p class="page-lede">
+        Product updates, quality tips, and seasonal payout windows. Static examples for this
+        demo site.
+      </p>
+      <p class="demo-banner">
+        Demo content—not live announcements.
+      </p>
+
+      <div class="news-list">
+        <article class="news-item">
+          <h3>Higher rates for evening kitchen blocks</h3>
+          <div class="news-meta">May 10, 2026 · Program</div>
+          <p>
+            We are testing a short window with improved pay for well-lit kitchen sessions after
+            6pm local time. Opt in from the task feed when you see the badge.
+          </p>
+        </article>
+        <article class="news-item">
+          <h3>Reminder: consent for anyone on camera</h3>
+          <div class="news-meta">May 2, 2026 · Policy</div>
+          <p>
+            Clips must only include people who have agreed to be recorded. When in doubt, pause
+            and reframe—reviewers will fast-track compliant submissions.
+          </p>
+        </article>
+        <article class="news-item">
+          <h3>New checklist for handheld desk tasks</h3>
+          <div class="news-meta">April 22, 2026 · Quality</div>
+          <p>
+            Desk reset tasks now ship with a three-step framing guide to reduce blur. Read the
+            on-screen checklist before you hit record.
+          </p>
+        </article>
+      </div>
+    </main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        OnlyworkAuth.initAppHeader();
+      });
+    </script>
+  </body>
+</html>
